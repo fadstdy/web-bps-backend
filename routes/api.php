@@ -3,33 +3,30 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\PublikasiController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
+| Di file ini lo bisa define semua route API lo.
+| Middleware 'api' otomatis terpasang dari Kernel.php
+| CORS ditangani di config/cors.php, tapi buat kasus stubborn kayak ini,
+| kita brute-force header CORS biar browser diem 😤
 */
 
+// ✅ LOGIN route (POST)
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    // Publikasi
-    Route::get('/publikasi', [PublikasiController::class, 'index']);
-    Route::post('/publikasi', [PublikasiController::class, 'store']);
-    Route::get('/publikasi/{id}', [PublikasiController::class, 'show']);
-    Route::put('/publikasi/{id}', [PublikasiController::class, 'update']);
-    Route::delete('/publikasi/{id}', [PublikasiController::class, 'destroy']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+// ✅ CORS preflight fix: brute-force handle OPTIONS /login
+Route::options('/login', function (Request $request) {
+    return response()->json([], 204)
+        ->header('Access-Control-Allow-Origin', 'https://web-bps-framework.netlify.app')
+        ->header('Access-Control-Allow-Credentials', 'true')
+        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// ✅ TEST route buat ngetes apakah CORS kehandle
+Route::get('/cors-test', function () {
+    return response()->json(['message' => 'CORS OK, bro!']);
 });
-
-
